@@ -33,7 +33,7 @@ services:
       MONGODB_URI: 'mongodb://mongo:27017'
       MONGODB_USER: ${MONGODB_USERNAME}
       MONGODB_PASSWORD: ${MONGODB_PASSWORD}
-      MONGODB_DATABASE: 'sorry-cypress'
+      MONGODB_DATABASE: ${MONGODB_DATABASE}
       APOLLO_PLAYGROUND: 'false'
       BASE_PATH: ${API_BASE_PATH:-/}
     expose:
