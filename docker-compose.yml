@@ -1,0 +1,124 @@
+version: '3.9'
+
+services:
+  dashboard:
+    image: agoldis/sorry-cypress-dashboard:latest
+    restart: always
+    environment:
+      GRAPHQL_SCHEMA_URL: ${API_URL}
+      GRAPHQL_CLIENT_CREDENTIALS: ${API_CREDENTIALS}
+      CI_URL: ${CI_URL}
+      PORT: 8080
+    expose:
+      - 8080
+    networks:
+      - internal
+    healthcheck:
+      test: ['CMD-SHELL', 'curl --fail http://localhost:8080/']
+      interval: 3s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: ${DASHBOARD_LIMIT_CPU:-0.25}
+          memory: ${DASHBOARD_LIMIT_RAM:-128M}
+        reservations:
+          cpus: '0.1'
+          memory: 10M
+  api:
+    image: agoldis/sorry-cypress-api:latest
+    restart: always
+    environment:
+      MONGODB_URI: 'mongodb://mongo:27017'
+      MONGODB_DATABASE: 'sorry-cypress'
+      APOLLO_PLAYGROUND: 'false'
+    expose:
+      - 4000
+    depends_on:
+      mongo:
+        condition: service_healthy
+    links:
+      - mongo:mongo
+    networks:
+      - internal
+    healthcheck:
+      test: ['CMD-SHELL', 'curl --fail http://localhost:4000/']
+      interval: 3s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: ${API_LIMIT_CPU:-1}
+          memory: ${API_LIMIT_RAM:-256M}
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+  director:
+    image: agoldis/sorry-cypress-director:latest
+    restart: always
+    environment:
+      DASHBOARD_URL: ${DASHBOARD_URL}
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DATABASE: ${MONGODB_DATABASE}
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET}
+      EXECUTION_DRIVER: '../execution/mongo/driver'
+      SCREENSHOTS_DRIVER: '../screenshots/s3.driver'
+      GITLAB_JOB_RETRIES: 'false'
+      PROBE_LOGGER: ${PROBE_LOGGER:-false}
+    expose:
+      - 1234
+    depends_on:
+      mongo:
+        condition: service_healthy
+    links:
+      - mongo:mongo
+    networks:
+      - internal
+    healthcheck:
+      test: ['CMD-SHELL', 'curl --fail http://localhost:1234/']
+      interval: 3s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: ${DIRECTOR_LIMIT_CPU:-1}
+          memory: ${DIRECTOR_LIMIT_RAM:-256M}
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+  mongo:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+    expose:
+      - 27017
+    volumes:
+      - ${MONGODB_VOLUME}:/data/db
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: ${MONGO_LIMIT_CPU:-1}
+          memory: ${MONGO_LIMIT_RAM:-512M}
+        reservations:
+          cpus: '0.1'
+          memory: 16M
+  
+networks:
+  internal:
+  nginx:
+    external: true
+    name: nginx
