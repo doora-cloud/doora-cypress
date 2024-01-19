@@ -33,6 +33,7 @@ services:
       MONGODB_URI: 'mongodb://mongo:27017'
       MONGODB_DATABASE: 'sorry-cypress'
       APOLLO_PLAYGROUND: 'false'
+      BASE_PATH: ${API_BASE_PATH:-/}
     expose:
       - 4000
     depends_on:
@@ -59,6 +60,7 @@ services:
     image: agoldis/sorry-cypress-director:latest
     restart: always
     environment:
+      BASE_PATH: ${DIRECTOR_BASE_PATH:-/}
       DASHBOARD_URL: ${DASHBOARD_URL}
       MONGODB_URI: mongodb://mongo:27017
       MONGODB_DATABASE: ${MONGODB_DATABASE}
