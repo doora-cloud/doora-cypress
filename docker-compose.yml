@@ -13,11 +13,11 @@ services:
       - 8080
     networks:
       - internal
-    healthcheck:
-      test: ['CMD-SHELL', 'curl --fail http://localhost:8080/']
-      interval: 3s
-      timeout: 5s
-      retries: 3
+    # healthcheck:
+    #   test: ['CMD-SHELL', 'curl --fail http://localhost:8080/']
+    #   interval: 3s
+    #   timeout: 5s
+    #   retries: 3
     deploy:
       resources:
         limits:
@@ -38,16 +38,16 @@ services:
       - 4000
     depends_on:
       mongo:
-        condition: service_healthy
+        condition: service_started
     links:
       - mongo:mongo
     networks:
       - internal
-    healthcheck:
-      test: ['CMD-SHELL', 'curl --fail http://localhost:4000/']
-      interval: 3s
-      timeout: 5s
-      retries: 3
+    # healthcheck:
+    #   test: ['CMD-SHELL', 'curl --fail http://localhost:4000/']
+    #   interval: 3s
+    #   timeout: 5s
+    #   retries: 3
     deploy:
       resources:
         limits:
@@ -75,16 +75,16 @@ services:
       - 1234
     depends_on:
       mongo:
-        condition: service_healthy
+        condition: service_started
     links:
       - mongo:mongo
     networks:
       - internal
-    healthcheck:
-      test: ['CMD-SHELL', 'curl --fail http://localhost:1234/']
-      interval: 3s
-      timeout: 5s
-      retries: 3
+    # healthcheck:
+    #   test: ['CMD-SHELL', 'curl --fail http://localhost:1234/']
+    #   interval: 3s
+    #   timeout: 5s
+    #   retries: 3
     deploy:
       resources:
         limits:
@@ -105,11 +105,6 @@ services:
       - ${MONGODB_VOLUME}:/data/db
     networks:
       - internal
-    healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
     deploy:
       resources:
         limits:
